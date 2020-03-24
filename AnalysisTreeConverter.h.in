@@ -1,0 +1,3 @@
+// configured options for AnalysisTreeConverter
+#define AnalysisTreeConverter_VERSION_MAJOR @AnalysisTreeConverter_VERSION_MAJOR@
+#define AnalysisTreeConverter_VERSION_MINOR @AnalysisTreeConverter_VERSION_MINOR@
