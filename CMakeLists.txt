@@ -19,22 +19,22 @@ set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS}")
 # Include
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 set(GRSI_INCLUDE_DIRS $ENV{GRSISYS}/include $ENV{GRSISYS}/GRSIData/include)
-set(GRSI_LINK_LIBS $ENV{GRSISYS}/lib $ENV{GRSISYS}/GRSIData/lib)
 
-#set(GRSI_LIBS ${GRSISYS}/lib ${GRSISYS}/GRSIData/lib) # -L'
-
+link_directories($ENV{GRSISYS}/lib $ENV{GRSISYS}/GRSIData/lib)
 #Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
 find_package(ROOT CONFIG REQUIRED)
 include(${ROOT_USE_FILE})
 
 # Adding src files
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-#file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
 
 add_executable(TreeConverter ${SOURCES})
 
 # linking libraries
-#target_link_libraries(TreeConverter PRIVATE
+#target_link_libraries(TreeConverter PUBLIC
+#    ${GRSI_LINK_LIBS}
+#)
+#link_directories(${GRSI_LINK_LIBS})
 #    ${GRSI_LINK_LIBS}
 #    Spectrum
 #    Minuit
@@ -42,9 +42,9 @@ add_executable(TreeConverter ${SOURCES})
 #)
 
 # add the binary tree to the search path for include files so that we will find AnalysisTreeConverter.h
-target_include_directories(TreeConverter PRIVATE
+target_include_directories(TreeConverter PUBLIC
     "${PROJECT_BINARY_DIR}"
-    ${GRSI_INCLUDE_DIRS}
+    "${GRSI_INCLUDE_DIRS}"
     include
     )
 
