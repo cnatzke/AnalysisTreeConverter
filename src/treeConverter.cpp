@@ -27,8 +27,8 @@ std::vector<std::string> RootFiles;
 std::vector<std::string> CalFiles;
 std::vector<std::string> InfoFiles;
 
-class Notifier : public TObject { 
-   public: 
+class Notifier : public TObject {
+   public:
       Notifier() { }
       ~Notifier() { }
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 
    std::cout << "Starting run " << run_number << " with " << gChain->GetNtrees() << " files" << std::endl;
 
-   // Defining RootFile branch structure 
+   // Defining RootFile branch structure
    typedef struct {double energy; double time; int arrayNumber;} GRIFFIN;
    GRIFFIN fGrif;
 
@@ -122,9 +122,9 @@ int main(int argc, char **argv) {
    }
 
    std::cout << "Starting fill loop" << std::endl;
-   
-   /* Creates a progress bar that has a width of 70, 
-    * shows '=' to indicate completion, and blank 
+
+   /* Creates a progress bar that has a width of 70,
+    * shows '=' to indicate completion, and blank
     * space for incomplete
     */
    ProgressBar progress_bar(analysis_entries, 70, '=', ' ');
@@ -139,14 +139,14 @@ int main(int argc, char **argv) {
          fGrif.energy = grifHit->GetEnergy();
          fGrif.time = grifHit->GetTime();
          fGrif.arrayNumber = grifHit->GetArrayNumber() - 1;
-         
+
          // fill tree
          griffin_tree->Fill();
       } // end griffin hits
 
       if (i % 10000 == 0){
          progress_bar.display();
-      } 
+      }
       ++progress_bar; // iterates progress_bar
    } // end fill loop
 
@@ -155,7 +155,6 @@ int main(int argc, char **argv) {
    out_file->cd();
    griffin_tree->Write("", TObject::kOverwrite); // Overwrites old versions of the file
    //out_file->Write();
-  ear
 
    out_file->Purge(); // removes lower namecycle copies of t_file->Close();
 
