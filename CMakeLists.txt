@@ -14,7 +14,14 @@ configure_file(AnalysisTreeConverter.h.in AnalysisTreeConverter.h)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 
-set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS}")
+execute_process(COMMAND grsi-config --all-libs --GRSIData-libs --root 
+   OUTPUT_VARIABLE GRSI_CONFIG 
+   OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+message(STATUS "Found Grsisort libraries: ${GRSI_CONFIG}")
+
+set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${GRSI_CONFIG}")
 
 # Include
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
@@ -25,7 +32,6 @@ link_directories($ENV{GRSISYS}/lib $ENV{GRSISYS}/GRSIData/lib)
 find_package(ROOT CONFIG REQUIRED)
 include(${ROOT_USE_FILE})
 
-execute_process(COMMAND bash -c grsi-config --cflags --all-libs --GRSIData-libs --root OUTPUT_VARIABLE GRSI_CONFIG)
 
 # Adding src files
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
@@ -33,9 +39,9 @@ file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_executable(TreeConverter ${SOURCES})
 
 # linking libraries
-#target_link_libraries(TreeConverter PUBLIC
-#    ${GRSI_LINK_LIBS}
-#)
+target_link_libraries(TreeConverter PUBLIC
+   ${GRSI_CONFIG}
+)
 #link_directories(${GRSI_LINK_LIBS})
 #    ${GRSI_LINK_LIBS}
 #    Spectrum
@@ -52,7 +58,7 @@ target_include_directories(TreeConverter PUBLIC
 
 
 # add install targets
-install(TARGETS TreeConverter DESTINATION bin)
+install(TARGETS TreeConverter DESTINATION "${PROJECT_BINARY_DIR}/bin")
 install(FILES "${PROJECT_BINARY_DIR}/AnalysisTreeConverter.h"
-    DESTINATION include
+   DESTINATION "${PROJECT_BINARY_DIR}/include"
 )
