@@ -25,6 +25,8 @@ link_directories($ENV{GRSISYS}/lib $ENV{GRSISYS}/GRSIData/lib)
 find_package(ROOT CONFIG REQUIRED)
 include(${ROOT_USE_FILE})
 
+execute_process(COMMAND bash -c grsi-config --cflags --all-libs --GRSIData-libs --root OUTPUT_VARIABLE GRSI_CONFIG)
+
 # Adding src files
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 

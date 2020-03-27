@@ -1,4 +1,4 @@
-//g++ treeConvert.cxx -std=c++0x -I$GRSISYS/include -L$GRSISYS/lib `grsi-config --cflags --all-libs --GRSIData-libs` -I$GRSISYS/GRSIData/include -L$GRSISYS/GRSIData/lib `root-config --cflags --libs` -lTreePlayer -lMathMore -lSpectrum -lMinuit -lPyROOT -o TreeConverter
+//g++ treeConvert.cxx -std=c++11 `grsi-config --cflags --all-libs --GRSIData-libs --root` -I$GRSISYS/GRSIData/include -o TreeConverter
 
 #include "TFile.h"
 #include "TChain.h"
