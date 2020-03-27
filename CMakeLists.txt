@@ -14,40 +14,39 @@ configure_file(AnalysisTreeConverter.h.in AnalysisTreeConverter.h)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 
+set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${GRSI_CONFIG}")
+
+# Connect ROOT to project
+list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+
+#link_directories($ENV{GRSISYS}/lib $ENV{GRSISYS}/GRSIData/lib)
+#Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
+find_package(ROOT CONFIG REQUIRED)
+include(${ROOT_USE_FILE})
+
+# Connect GRSISORT headers
+set(GRSI_INCLUDE_DIRS $ENV{GRSISYS}/include $ENV{GRSISYS}/GRSIData/include)
+
+# Grsisort libraries for linking
 execute_process(COMMAND grsi-config --all-libs --GRSIData-libs --root 
    OUTPUT_VARIABLE GRSI_CONFIG 
    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-message(STATUS "Found Grsisort libraries: ${GRSI_CONFIG}")
-
-set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${GRSI_CONFIG}")
-
-# Include
-list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-set(GRSI_INCLUDE_DIRS $ENV{GRSISYS}/include $ENV{GRSISYS}/GRSIData/include)
-
-link_directories($ENV{GRSISYS}/lib $ENV{GRSISYS}/GRSIData/lib)
-#Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
-find_package(ROOT CONFIG REQUIRED)
-include(${ROOT_USE_FILE})
+# Message for debugging
+#message(STATUS "Found Grsisort libraries: ${GRSI_CONFIG}")
 
 
 # Adding src files
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
+# Naming main executable
 add_executable(TreeConverter ${SOURCES})
 
 # linking libraries
 target_link_libraries(TreeConverter PUBLIC
    ${GRSI_CONFIG}
 )
-#link_directories(${GRSI_LINK_LIBS})
-#    ${GRSI_LINK_LIBS}
-#    Spectrum
-#    Minuit
-#    PyROOT
-#)
 
 # add the binary tree to the search path for include files so that we will find AnalysisTreeConverter.h
 target_include_directories(TreeConverter PUBLIC
@@ -56,9 +55,8 @@ target_include_directories(TreeConverter PUBLIC
     include
     )
 
-
 # add install targets
-install(TARGETS TreeConverter DESTINATION "${PROJECT_BINARY_DIR}/bin")
+install(TARGETS TreeConverter DESTINATION "${PROJECT_BINARY_DIR}/Install/bin")
 install(FILES "${PROJECT_BINARY_DIR}/AnalysisTreeConverter.h"
-   DESTINATION "${PROJECT_BINARY_DIR}/include"
+   DESTINATION "${PROJECT_BINARY_DIR}/Install/include"
 )
