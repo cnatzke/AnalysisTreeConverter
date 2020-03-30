@@ -19,34 +19,13 @@
 
 Notifier *notifier = new Notifier;
 
-void OpenRootFile(std::string fileName){
-   TFile f(fileName.c_str());
-   if (f.Get("AnalysisTree")){
-      if (!gChain) {
-         gChain = new TChain("AnalysisTree");
-         notifier->AddChain(gChain);
-         gChain->SetNotify(notifier);
-      }
-      gChain->Add(fileName.c_str());
-      std::cout << "Added: " << fileName << std::endl;
-   }
-} // end OpenRootFile
-
-void AutoFileDetect(std::string fileName){
-   size_t dot_pos = fileName.find_last_of('.');
-   std::string ext = fileName.substr(dot_pos + 1);
-
-   if (ext == "root"){
-      OpenRootFile(fileName);
-   }
-   else if (ext == "cal"){
-      notifier->AddCalFile(fileName);
-   } else {
-      std::cerr << "Discarding unknown file: " << fileName.c_str() << std::endl;
-   }
-} // End AutoFileDetect
-
 int main(int argc, char **argv) {
+
+    if (argc == 1){ // no inputs given
+        PrintUsage(argv);
+        return 0;
+    }
+
    for (auto i = 1; i < argc; i++) AutoFileDetect(argv[i]);
 
    if (!gChain) std::cout << "No gChain found" << std::endl;
@@ -122,3 +101,37 @@ int main(int argc, char **argv) {
 
    return 0;
 } // End main
+
+void OpenRootFile(std::string fileName){
+   TFile f(fileName.c_str());
+   if (f.Get("AnalysisTree")){
+      if (!gChain) {
+         gChain = new TChain("AnalysisTree");
+         notifier->AddChain(gChain);
+         gChain->SetNotify(notifier);
+      }
+      gChain->Add(fileName.c_str());
+      std::cout << "Added: " << fileName << std::endl;
+   }
+} // end OpenRootFile
+
+void AutoFileDetect(std::string fileName){
+   size_t dot_pos = fileName.find_last_of('.');
+   std::string ext = fileName.substr(dot_pos + 1);
+
+   if (ext == "root"){
+      OpenRootFile(fileName);
+   }
+   else if (ext == "cal"){
+      notifier->AddCalFile(fileName);
+   } else {
+      std::cerr << "Discarding unknown file: " << fileName.c_str() << std::endl;
+   }
+} // End AutoFileDetect
+
+void PrintUsage(char* argv[]){
+    std::cerr << "usage: " << argv[0] << " analysis_tree calibration_file\n"
+    << " analysis_tree:    analysis tree to convert (must end with .root)\n"
+    << " calibration_file: calibration file (must end with .cal)"
+    << std::endl;
+} // end PrintUsage

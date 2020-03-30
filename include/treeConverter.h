@@ -43,4 +43,6 @@ class Notifier : public TObject {
 
 void OpenRootFile(std::string fileName);
 void AutoFileDetect(std::string fileName);
+void PrintUsage(char* argv[]);
+
 #endif
