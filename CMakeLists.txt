@@ -3,7 +3,7 @@
 #------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.2)
 
-project(TreeConverter VERSION 0.1)
+project(TreeConverter VERSION 0.2)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -56,7 +56,7 @@ target_include_directories(TreeConverter PUBLIC
     )
 
 # add install targets
-install(TARGETS TreeConverter DESTINATION "${PROJECT_BINARY_DIR}/Install/bin")
+install(TARGETS TreeConverter DESTINATION "${PROJECT_BINARY_DIR}/bin")
 install(FILES "${PROJECT_BINARY_DIR}/AnalysisTreeConverter.h"
-   DESTINATION "${PROJECT_BINARY_DIR}/Install/include"
+   DESTINATION "${PROJECT_BINARY_DIR}/include"
 )
