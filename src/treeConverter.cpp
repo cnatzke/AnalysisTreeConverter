@@ -8,6 +8,7 @@
 //#include "TGRSIRunInfo.h"
 #include "progress_bar.h"
 #include "treeConverter.h"
+#include "AnalysisTreeConverter.h"
 
 #include <iostream>
 #include <iomanip> // setiosflags
@@ -17,121 +18,146 @@
 #include "TGriffin.h"
 #endif
 
-Notifier *notifier = new Notifier;
-
 int main(int argc, char **argv) {
 
-    if (argc == 1){ // no inputs given
-        PrintUsage(argv);
-        return 0;
-    }
+	if (argc == 1) { // no inputs given
+		PrintUsage(argv);
+		return 0;
+	}
 
-   for (auto i = 1; i < argc; i++) AutoFileDetect(argv[i]);
+	for (auto i = 1; i < argc; i++) AutoFileDetect(argv[i]);
 
-   if (!gChain) std::cout << "No gChain found" << std::endl;
-   if (!gChain->GetEntries()) std::cout << "Found gChain, but no entries retrieved" << std::endl;
+	if (!gChain) std::cout << "No gChain found" << std::endl;
+	if (!gChain->GetEntries()) std::cout << "Found gChain, but no entries retrieved" << std::endl;
 
-   if (!gChain || !gChain->GetEntries()){
-      std::cerr << "Failed to find anything. Exiting" << std::endl;
-      return 1;
-   }
+	if (!gChain || !gChain->GetEntries()) {
+		std::cerr << "Failed to find anything. Exiting" << std::endl;
+		return 1;
+	}
 
-   std::string fName = gChain->GetCurrentFile()->GetName();
-   int run_number = GetRunNumber(fName.c_str());
+	// Output (converted) ROOT file
+	TFile *out_file = new TFile("./convertedFile.root", "RECREATE");
 
-   std::cout << "Starting run " << run_number << " with " << gChain->GetNtrees() << " files" << std::endl;
-
-   // Defining RootFile branch structure
-   typedef struct {double energy; double time; int arrayNumber;} GRIFFIN;
-   GRIFFIN fGrif;
-
-   // Output (converted) ROOT file
-   TFile *out_file = new TFile("./convertedFile.root", "RECREATE");
-
-   // Branches
-   TTree *griffin_tree = new TTree("griffin", "GRIFFIN Hits");
-   griffin_tree->Branch("fGrif", &fGrif, "energy/D:time/D:arrayNumber/I");
-
-   long analysis_entries = gChain->GetEntries();
-
-   TGriffin *griffin_data = NULL;
-   if (gChain->FindBranch("TGriffin")){
-      gChain-> SetBranchAddress("TGriffin", &griffin_data);
-      std::cout << "Succesfully found TGriffin Branch" << std::endl;
-   }
-
-   std::cout << "Starting fill loop" << std::endl;
-
-   /* Creates a progress bar that has a width of 70,
-    * shows '=' to indicate completion, and blank
-    * space for incomplete
-    */
-   ProgressBar progress_bar(analysis_entries, 70, '=', ' ');
-   for (auto i = 0; i < analysis_entries; i++){
-      // retrieve entries from trees
-      gChain->GetEntry(i);
-
-      for (auto g = 0; g < griffin_data->GetMultiplicity(); g++){
-         TGriffinHit *grifHit = griffin_data->GetGriffinHit(g);
-
-         // get leaves
-         fGrif.energy = grifHit->GetEnergy();
-         fGrif.time = grifHit->GetTime();
-         fGrif.arrayNumber = grifHit->GetArrayNumber() - 1;
-
-         // fill tree
-         griffin_tree->Fill();
-      } // end griffin hits
-
-      if (i % 10000 == 0){
-         progress_bar.display();
-      }
-      ++progress_bar; // iterates progress_bar
-   } // end fill loop
-
-   progress_bar.done();
-
-   out_file->cd();
-   griffin_tree->Write("", TObject::kOverwrite); // Overwrites old versions of the file
-   //out_file->Write();
-
-   out_file->Purge(); // removes lower namecycle copies of t_file->Close();
-
-   std::cout << "Done!" << std::endl;
-
-   return 0;
+	int process_check;
+	process_check = ProcessData(out_file);
+	if (process_check != 0) {
+		std::cout << "Data did not process correctly ... exiting" << std::endl;
+		return 1;
+	} else {
+		std::cout << "Done!" << std::endl;
+		return 0;
+	}
 } // End main
 
+int ProcessData(TFile* out_file){
+	std::string fName = gChain->GetCurrentFile()->GetName();
+	int run_number = GetRunNumber(fName.c_str());
+
+	std::cout << "Starting run " << run_number << " with " << gChain->GetNtrees() << " files" << std::endl;
+
+	GrifEvent_t fGrif;
+	TTree *griffin_tree = new TTree("griffin", "GRIFFIN Hits");
+	griffin_tree->Branch("fGrif", &fGrif, "charge/D:energy/D:time/D:arrayNumber/I");
+
+	long analysis_entries = gChain->GetEntries();
+
+	TGriffin *griffin_data = NULL;
+	if (gChain->FindBranch("TGriffin")) {
+		gChain->SetBranchAddress("TGriffin", &griffin_data);
+		std::cout << "Succesfully found TGriffin Branch" << std::endl;
+	}
+
+	std::cout << "Starting fill loop" << std::endl;
+
+	/* Creates a progress bar that has a width of 70,
+	 * shows '=' to indicate completion, and blank
+	 * space for incomplete
+	 */
+	ProgressBar progress_bar(analysis_entries, 70, '=', ' ');
+	for (auto i = 0; i < analysis_entries; i++) {
+		// retrieve entries from trees
+		gChain->GetEntry(i);
+
+		for (auto g = 0; g < griffin_data->GetMultiplicity(); g++) {
+			TGriffinHit *grifHit = griffin_data->GetGriffinHit(g);
+
+			// get leaves
+			fGrif.charge = grifHit->GetCharge();
+			fGrif.energy = grifHit->GetEnergy();
+			fGrif.time = grifHit->GetTime();
+			fGrif.arrayNumber = grifHit->GetArrayNumber() - 1;
+
+			// fill tree
+			griffin_tree->Fill();
+		} // end griffin hits
+
+		if (i % 10000 == 0) {
+			progress_bar.display();
+		}
+		++progress_bar; // iterates progress_bar
+	} // end fill loop
+
+	progress_bar.done();
+
+	int output_check = WriteTree(out_file, griffin_tree);
+	if (output_check != 0) {
+		std::cout << "Could not write output file ... exiting" << std::endl;
+		return 1;
+	}
+
+	return 0;
+} // ProcessData
+
+int WriteTree(TFile* out_file, TTree* tree){
+	out_file->cd();
+	tree->Write("", TObject::kOverwrite); // Overwrites old version of the file
+	out_file->Purge(); // removes lower namecycle copies of t_file->Close();
+
+	return 0;
+} // WriteTree
+
+int CheckInputTree(const char *infile){
+	TChain tree("AnalysisTree");
+	tree.Add(infile);
+
+	if(!tree.FindBranch("Griffin")) {
+		std::cout << "Could not find Griffin branch ... exiting" << std::endl;
+		return 1;
+	}
+	return 0;
+}
+
 void OpenRootFile(std::string fileName){
-   TFile f(fileName.c_str());
-   if (f.Get("AnalysisTree")){
-      if (!gChain) {
-         gChain = new TChain("AnalysisTree");
-         notifier->AddChain(gChain);
-         gChain->SetNotify(notifier);
-      }
-      gChain->Add(fileName.c_str());
-      std::cout << "Added: " << fileName << std::endl;
-   }
+	TFile f(fileName.c_str());
+	if (f.Get("AnalysisTree")) {
+		if (!gChain) {
+			gChain = new TChain("AnalysisTree");
+			notifier->AddChain(gChain);
+			gChain->SetNotify(notifier);
+		}
+		gChain->Add(fileName.c_str());
+		std::cout << "Added: " << fileName << std::endl;
+	}
 } // end OpenRootFile
 
 void AutoFileDetect(std::string fileName){
-   size_t dot_pos = fileName.find_last_of('.');
-   std::string ext = fileName.substr(dot_pos + 1);
+	size_t dot_pos = fileName.find_last_of('.');
+	std::string ext = fileName.substr(dot_pos + 1);
 
-   if (ext == "root"){
-      OpenRootFile(fileName);
-   }
-   else if (ext == "cal"){
-      notifier->AddCalFile(fileName);
-   } else {
-      std::cerr << "Discarding unknown file: " << fileName.c_str() << std::endl;
-   }
+	if (ext == "root") {
+		OpenRootFile(fileName);
+	}
+	else if (ext == "cal") {
+		notifier->AddCalFile(fileName);
+	} else {
+		std::cerr << "Discarding unknown file: " << fileName.c_str() << std::endl;
+	}
 } // End AutoFileDetect
 
 void PrintUsage(char* argv[]){
-    std::cerr << "usage: " << argv[0] << " analysis_tree calibration_file\n"
-    << " analysis_tree:    analysis tree to convert (must end with .root)\n"
-    << " calibration_file: calibration file (must end with .cal)"
-    << std::endl;
+	std::cerr << argv[0] << " Version: " << AnalysisTreeConverter_VERSION_MAJOR << "." << AnalysisTreeConverter_VERSION_MINOR << "\n"
+	          << "usage: " << argv[0] << " calibration_file analysis_tree_1 [analysis_tree_2 ... ]\n"
+	          << " calibration_file: calibration file (must end with .cal)\n"
+	          << " analysis_tree_1:  analysis tree to convert (must end with .root)"
+	          << std::endl;
 } // end PrintUsage

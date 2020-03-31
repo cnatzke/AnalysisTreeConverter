@@ -3,7 +3,7 @@
 #------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.2)
 
-project(TreeConverter VERSION 0.2)
+project(AnalysisTreeConverter VERSION 0.3)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -14,7 +14,7 @@ configure_file(AnalysisTreeConverter.h.in AnalysisTreeConverter.h)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 
-set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${GRSI_CONFIG}")
+set(CMAKE_CXX_FLAGS "-Wall -O3 ${CMAKE_CXX_FLAGS} ${GRSI_CONFIG}")
 
 # Connect ROOT to project
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
@@ -28,8 +28,8 @@ include(${ROOT_USE_FILE})
 set(GRSI_INCLUDE_DIRS $ENV{GRSISYS}/include $ENV{GRSISYS}/GRSIData/include)
 
 # Grsisort libraries for linking
-execute_process(COMMAND grsi-config --all-libs --GRSIData-libs --root 
-   OUTPUT_VARIABLE GRSI_CONFIG 
+execute_process(COMMAND grsi-config --all-libs --GRSIData-libs --root
+   OUTPUT_VARIABLE GRSI_CONFIG
    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
