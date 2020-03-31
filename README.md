@@ -4,7 +4,7 @@ Filters analysis trees for implemetation in python
 # Install
 Download files
 ```
-git clone ...
+git clone https://github.com/cnatzke/AnalysisTreeConverter.git
 ```
 Build program using standard cmake process, e.g. 
 ```
